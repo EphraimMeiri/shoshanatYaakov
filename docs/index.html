@@ -111,6 +111,7 @@
 
   var WORD_ARUR   = "\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8";
   var WORD_BARUCH = "\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0";
+
   var NAME_HAMAN  = "\u05D4\u05B8\u05DE\u05B8\u05DF";
   var NAME_MORD   = "\u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9";
   var SUFFIX_A    = "\u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:";
@@ -194,15 +195,22 @@
     return CHR_BEFORE + words.join(" ") + CHR_AFTER;
   }
 
-  function addLine(container, text, cls) {
+  function addLine(container, text, cls, drunk) {
     var span = document.createElement('span');
     span.className = 'line' + (cls ? ' ' + cls : '');
     span.textContent = text;
+    if (drunk) {
+      /* random font size wobble: 0.92–1.08 */
+      span.style.fontSize = (0.92 + Math.random() * 0.16).toFixed(2) + 'em';
+      /* small random tilt: -1.5° to 1.5° */
+      span.style.transform = 'rotate(' + ((Math.random() * 3) - 1.5).toFixed(1) + 'deg)';
+      span.style.transformOrigin = 'right center';
+    }
     container.appendChild(span);
   }
 
-  function repeat(container, text, n, cls) {
-    for (var i = 0; i < n; i++) addLine(container, text, cls);
+  function repeat(container, text, n, cls, drunk) {
+    for (var i = 0; i < n; i++) addLine(container, text, cls, drunk);
   }
 
   /* ---- render the poem ---- */
@@ -231,45 +239,55 @@
     }
 
     /* ---- עד דלא ידע mode ---- */
+    var D = true; /* shorthand for drunk flag */
 
     /* lines 1-4: usually once, occasionally repeat */
     var first4 = [LINES.shoshanat, LINES.birotam, LINES.teshuatam, LINES.vetikvatam];
     for (var i = 0; i < first4.length; i++) {
-      repeat(c, first4[i], rareDup(3));
+      repeat(c, first4[i], rareDup(3), null, D);
     }
 
     /* להודיע: letter mangling common, word repeats moderate, line repeats rare */
     var lehLines = rareDup(3);
-    for (var li = 0; li < lehLines; li++) addLine(c, makeLehodiaLine());
+    for (var li = 0; li < lehLines; li++) addLine(c, makeLehodiaLine(), null, D);
 
     /* line 6 */
-    repeat(c, LINES.velo, rareDup(2));
+    repeat(c, LINES.velo, rareDup(2), null, D);
 
-    /* ארור/ברוך lines: usually once, re-rolling the variant each time */
+    /* ארור/ברוך lines: re-rolling the variant each time */
     var repsA = rareDup(3);
     for (var j = 0; j < repsA; j++) {
       var vj = variants[Math.floor(Math.random() * 3)]();
-      addLine(c, vj[0], 'swap-ab');
+      addLine(c, vj[0], 'swap-ab', D);
     }
     var repsB = rareDup(3);
     for (var k = 0; k < repsB; k++) {
       var vk = variants[Math.floor(Math.random() * 3)]();
-      addLine(c, vk[1], 'swap-ab');
+      addLine(c, vk[1], 'swap-ab', D);
     }
 
     /* ארורה זרש / ברוכה אסתר */
-    repeat(c, LINES.arura, rareDup(2));
-    repeat(c, LINES.berucha, rareDup(2));
+    repeat(c, LINES.arura, rareDup(2), null, D);
+    repeat(c, LINES.berucha, rareDup(2), null, D);
 
     /* parenthetical lines: no parens, randomly include or exclude */
     if (Math.random() > 0.35) {
-      addLine(c, LINES.parensA);
-      addLine(c, LINES.parensB);
+      addLine(c, LINES.parensA, null, D);
+      addLine(c, LINES.parensB, null, D);
     }
 
     /* חרבונה: letter mangling common, word repeats moderate, line repeats rare */
     var chLines = rareDup(3);
-    for (var ci = 0; ci < chLines; ci++) addLine(c, makeCharvonaLine());
+    for (var ci = 0; ci < chLines; ci++) addLine(c, makeCharvonaLine(), null, D);
+
+    /* occasional adjacent line swaps (~25% chance per pair) */
+    var spans = c.querySelectorAll('.line');
+    for (var si = 0; si < spans.length - 1; si++) {
+      if (Math.random() < 0.25) {
+        c.insertBefore(spans[si + 1], spans[si]);
+        spans = c.querySelectorAll('.line'); /* refresh after DOM change */
+      }
+    }
   }
 
   /* ---- init ---- */
@@ -302,11 +320,14 @@
   }
 
   /* ---- button: once activated, each click reshuffles ---- */
+  var BTN_LABELS = ["\u05E2\u05B7\u05D3 \u05D3\u05BC\u05B0\u05DC\u05B8\u05D0 \u05D9\u05B8\u05D3\u05B7\u05E2",
+                     "\u05E2\u05D5\u05D3 \u05DC\u05D0 \u05D9\u05E6\u05D0\u05EA\u05D9 \u05D9\u05D3\u05D9 \u05D7\u05D5\u05D1\u05D4"];
   var drunkMode = false;
   var btn = document.getElementById('ad-dla-yada');
   btn.addEventListener('click', function() {
     drunkMode = true;
     btn.classList.add('active');
+    btn.textContent = BTN_LABELS[Math.floor(Math.random() * BTN_LABELS.length)];
     renderPoem(true);
     startSwap();
   });
