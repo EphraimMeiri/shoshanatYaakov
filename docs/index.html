@@ -46,6 +46,32 @@
     #text-viewer { padding: 2cm; }
     #text-viewer .poem { font-size: 14pt; line-height: 2.2; }
   }
+
+  /* עד דלא ידע button */
+  .ad-dla-yada-btn {
+    display: inline-block;
+    padding: 0.6em 1.2em;
+    background: #8b2252;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-family: "David", "Frank Ruehl", "Times New Roman", "Noto Serif Hebrew", serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: 0.5em;
+  }
+  .ad-dla-yada-btn:hover {
+    background: #a0305f;
+  }
+  .ad-dla-yada-btn.active {
+    background: #c0392b;
+    animation: wobble 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes wobble {
+    from { transform: rotate(-1.5deg); }
+    to   { transform: rotate(1.5deg); }
+  }
 </style>
 </head>
 <body>
@@ -53,22 +79,10 @@
 <iframe id="native-viewer"></iframe>
 
 <div id="text-viewer">
-  <div class="poem">
-    <span class="line">שׁוֹשַׁנַת יַעֲקֹב צָהֲלָה וְשָׂמֵחָה:</span>
-    <span class="line">בִּרְאוֹתָם יַחַד תְּכֵלֶת מָרְדְּכָי:</span>
-    <span class="line">תְּשׁוּעָתָם הָיִיתָ לָנֶצַח:</span>
-    <span class="line">וְתִקְוָתָם בְּכָל דּוֹר וָדוֹר:</span>
-    <span class="line">לְהוֹדִיע שֶׁכָּל קֹוֶיךָ לֹא יֵבֹשׁוּ:</span>
-    <span class="line">וְלֹא יִכָּלְמוּ לָנֶצַח כָּל הַחוֹסִים בָּךְ:</span>
-    <span class="line" id="line-a"></span>
-    <span class="line" id="line-b"></span>
-    <span class="line">אֲרוּרָה זֶרֶשׁ אֵשֶׁת מַפְחִידִי:</span>
-    <span class="line">בְּרוּכָה אֶסְתֵּר בַּעֲדִי:</span>
-    <span class="line parens">(אֲרוּרִים כָּל הָרְשָׁעִים:</span>
-    <span class="line parens">בְּרוּכִים כָּל הָצָדִיקִים:)</span>
-    <span class="line">וְגַם חַרְבוֹנָה זָכוּר לַטּוֹב:</span>
-  </div>
+  <div class="poem" id="poem-container"></div>
   <div style="text-align:center; margin-top:2em;">
+    <button id="ad-dla-yada" class="ad-dla-yada-btn" type="button">עַד דְּלָא יָדַע</button>
+    <br><br>
     <a href="shoshanatShikorV1.pdf" download
        style="display:inline-block; padding:0.6em 1.2em; background:#3b5998;
               color:#fff; text-decoration:none; border-radius:6px; font-size:0.9em;
@@ -80,22 +94,185 @@
 
 <script>
 (function() {
+  /* ---- poem data ---- */
+  var LINES = {
+    shoshanat:  "\u05E9\u05C1\u05D5\u05B9\u05E9\u05B7\u05C1\u05E0\u05B7\u05EA \u05D9\u05B7\u05E2\u05B2\u05E7\u05B9\u05D1 \u05E6\u05B8\u05D4\u05B2\u05DC\u05B8\u05D4 \u05D5\u05B0\u05E9\u05B8\u05C2\u05DE\u05B5\u05D7\u05B8\u05D4:",
+    birotam:    "\u05D1\u05BC\u05B4\u05E8\u05B0\u05D0\u05D5\u05B9\u05EA\u05B8\u05DD \u05D9\u05B7\u05D7\u05B7\u05D3 \u05EA\u05BC\u05B0\u05DB\u05B5\u05DC\u05B6\u05EA \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B8\u05D9:",
+    teshuatam:  "\u05EA\u05BC\u05B0\u05E9\u05C1\u05D5\u05BC\u05E2\u05B8\u05EA\u05B8\u05DD \u05D4\u05B8\u05D9\u05B4\u05D9\u05EA\u05B8 \u05DC\u05B8\u05E0\u05B6\u05E6\u05B7\u05D7:",
+    vetikvatam: "\u05D5\u05B0\u05EA\u05B4\u05E7\u05B0\u05D5\u05B8\u05EA\u05B8\u05DD \u05D1\u05BC\u05B0\u05DB\u05B8\u05DC \u05D3\u05BC\u05D5\u05B9\u05E8 \u05D5\u05B8\u05D3\u05D5\u05B9\u05E8:",
+    velo:       "\u05D5\u05B0\u05DC\u05B9\u05D0 \u05D9\u05B4\u05DB\u05BC\u05B8\u05DC\u05B0\u05DE\u05D5\u05BC \u05DC\u05B8\u05E0\u05B6\u05E6\u05B7\u05D7 \u05DB\u05BC\u05B8\u05DC \u05D4\u05B7\u05D7\u05D5\u05B9\u05E1\u05B4\u05D9\u05DD \u05D1\u05BC\u05B8\u05DA\u05B0:",
+    arura:      "\u05D0\u05B2\u05E8\u05D5\u05BC\u05E8\u05B8\u05D4 \u05D6\u05B6\u05E8\u05B6\u05E9\u05C1 \u05D0\u05B5\u05E9\u05C1\u05B6\u05EA \u05DE\u05B7\u05E4\u05B0\u05D7\u05B4\u05D9\u05D3\u05B4\u05D9:",
+    berucha:    "\u05D1\u05BC\u05B0\u05E8\u05D5\u05BC\u05DB\u05B8\u05D4 \u05D0\u05B6\u05E1\u05B0\u05EA\u05BC\u05B5\u05E8 \u05D1\u05BC\u05B7\u05E2\u05B2\u05D3\u05B4\u05D9:",
+    parensA:    "\u05D0\u05B2\u05E8\u05D5\u05BC\u05E8\u05B4\u05D9\u05DD \u05DB\u05BC\u05B8\u05DC \u05D4\u05B8\u05E8\u05B0\u05E9\u05C1\u05B8\u05E2\u05B4\u05D9\u05DD:",
+    parensB:    "\u05D1\u05BC\u05B0\u05E8\u05D5\u05BC\u05DB\u05B4\u05D9\u05DD \u05DB\u05BC\u05B8\u05DC \u05D4\u05B8\u05E6\u05B7\u05BC\u05D3\u05BC\u05B4\u05D9\u05E7\u05B4\u05D9\u05DD:",
+    parensAp:   "(\u05D0\u05B2\u05E8\u05D5\u05BC\u05E8\u05B4\u05D9\u05DD \u05DB\u05BC\u05B8\u05DC \u05D4\u05B8\u05E8\u05B0\u05E9\u05C1\u05B8\u05E2\u05B4\u05D9\u05DD:",
+    parensBp:   "\u05D1\u05BC\u05B0\u05E8\u05D5\u05BC\u05DB\u05B4\u05D9\u05DD \u05DB\u05BC\u05B8\u05DC \u05D4\u05B8\u05E6\u05B7\u05BC\u05D3\u05BC\u05B4\u05D9\u05E7\u05B4\u05D9\u05DD:)"
+  };
+
+  var WORD_ARUR   = "\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8";
+  var WORD_BARUCH = "\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0";
+  var NAME_HAMAN  = "\u05D4\u05B8\u05DE\u05B8\u05DF";
+  var NAME_MORD   = "\u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9";
+  var SUFFIX_A    = "\u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:";
+  var SUFFIX_B    = "\u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:";
+
+  /* להודיע word parts for mangling (word only) */
+  var LEH_PRE  = "\u05DC\u05B0\u05D4";                       /* לְה       */
+  var LEH_VO   = "\u05D5\u05B9";                             /* וֹ        */
+  var LEH_MID  = "\u05D3\u05B4";                             /* דִ        */
+  var LEH_YOD  = "\u05D9";                                   /* י         */
+  var LEH_END  = "\u05E2";                                   /* ע         */
+  /* rest of the line after the word */
+  var LEH_LINE = " \u05E9\u05C1\u05B6\u05DB\u05BC\u05B8\u05DC \u05E7\u05B9\u05D5\u05B6\u05D9\u05DA\u05B8 \u05DC\u05B9\u05D0 \u05D9\u05B5\u05D1\u05B9\u05E9\u05C1\u05D5\u05BC:";
+
+  /* חרבונה word parts for mangling (word only) */
+  var CHR_WPRE = "\u05D7\u05B7\u05E8\u05B0\u05D1";           /* חַרְב     */
+  var CHR_VO   = "\u05D5\u05B9";                             /* וֹ        */
+  var CHR_WEND = "\u05E0\u05B8\u05D4";                       /* נָה       */
+  /* sentence frame around the word */
+  var CHR_BEFORE = "\u05D5\u05B0\u05D2\u05B7\u05DD ";        /* וְגַם     */
+  var CHR_AFTER  = " \u05D6\u05B8\u05DB\u05D5\u05BC\u05E8 \u05DC\u05B7\u05D8\u05BC\u05D5\u05B9\u05D1:"; /* זָכוּר לַטּוֹב: */
+
   var variants = [
-    // [line_a, line_b]
-    ["\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8 \u05D4\u05B8\u05DE\u05B8\u05DF \u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:",
-     "\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0 \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9 \u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:"],
-    // swap adjectives
-    ["\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0 \u05D4\u05B8\u05DE\u05B8\u05DF \u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:",
-     "\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8 \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9 \u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:"],
-    // swap names
-    ["\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8 \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9 \u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:",
-     "\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0 \u05D4\u05B8\u05DE\u05B8\u05DF \u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:"]
+    function() { return [WORD_ARUR   + " " + NAME_HAMAN + " " + SUFFIX_A,
+                          WORD_BARUCH + " " + NAME_MORD  + " " + SUFFIX_B]; },
+    function() { return [WORD_BARUCH + " " + NAME_HAMAN + " " + SUFFIX_A,
+                          WORD_ARUR   + " " + NAME_MORD  + " " + SUFFIX_B]; },
+    function() { return [WORD_ARUR   + " " + NAME_MORD  + " " + SUFFIX_A,
+                          WORD_BARUCH + " " + NAME_HAMAN + " " + SUFFIX_B]; }
   ];
 
-  var roll = Math.floor(Math.random() * 3);
-  var picked = variants[roll];
+  /* ---- helpers ---- */
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  /* weighted: returns 1 almost always, higher values as rare surprises */
+  function rareDup(max) {
+    var r = Math.random();
+    if (max >= 5 && r > 0.98) return randInt(3, max);  // 2%
+    if (max >= 3 && r > 0.95) return 3;                // 3%
+    if (max >= 2 && r > 0.88) return 2;                // 7%
+    return 1; // 88%
+  }
 
-  // Detect Chromium desktop (not mobile)
+  /* single-word generators — just the word, letter mangling independent each call */
+  function lehWord() {
+    var vos  = randInt(1, 3);
+    var yods = randInt(1, 4);
+    var w = LEH_PRE;
+    for (var i = 0; i < vos; i++)  w += LEH_VO;
+    w += LEH_MID;
+    for (var j = 0; j < yods; j++) w += LEH_YOD;
+    return w + LEH_END;
+  }
+
+  function chrWord() {
+    var vos = randInt(1, 4);
+    var w = CHR_WPRE;
+    for (var i = 0; i < vos; i++) w += CHR_VO;
+    return w + CHR_WEND;
+  }
+
+  /* word-repeat: ~30% chance of 2+, each word independently mangled */
+  function wordDup() {
+    var r = Math.random();
+    if (r > 0.95) return 3;    // 5%
+    if (r > 0.70) return 2;    // 25%
+    return 1;                   // 70%
+  }
+
+  /* build a line: repeat only the word, sentence frame appears once */
+  function makeLehodiaLine() {
+    var n = wordDup();
+    var words = [];
+    for (var i = 0; i < n; i++) words.push(lehWord());
+    return words.join(" ") + LEH_LINE;
+  }
+
+  function makeCharvonaLine() {
+    var n = wordDup();
+    var words = [];
+    for (var i = 0; i < n; i++) words.push(chrWord());
+    return CHR_BEFORE + words.join(" ") + CHR_AFTER;
+  }
+
+  function addLine(container, text, cls) {
+    var span = document.createElement('span');
+    span.className = 'line' + (cls ? ' ' + cls : '');
+    span.textContent = text;
+    container.appendChild(span);
+  }
+
+  function repeat(container, text, n, cls) {
+    for (var i = 0; i < n; i++) addLine(container, text, cls);
+  }
+
+  /* ---- render the poem ---- */
+  function renderPoem(drunk) {
+    var c = document.getElementById('poem-container');
+    c.innerHTML = '';
+
+    var v = variants[Math.floor(Math.random() * 3)]();
+
+    if (!drunk) {
+      /* sober: normal poem with randomized lines 7-8 */
+      addLine(c, LINES.shoshanat);
+      addLine(c, LINES.birotam);
+      addLine(c, LINES.teshuatam);
+      addLine(c, LINES.vetikvatam);
+      addLine(c, LEH_PRE + LEH_VO + LEH_MID + LEH_YOD + LEH_END + LEH_LINE);
+      addLine(c, LINES.velo);
+      addLine(c, v[0]);
+      addLine(c, v[1]);
+      addLine(c, LINES.arura);
+      addLine(c, LINES.berucha);
+      addLine(c, LINES.parensAp, 'parens');
+      addLine(c, LINES.parensBp, 'parens');
+      addLine(c, CHR_BEFORE + CHR_WPRE + CHR_VO + CHR_WEND + CHR_AFTER);
+      return;
+    }
+
+    /* ---- עד דלא ידע mode ---- */
+
+    /* lines 1-4: usually once, occasionally repeat */
+    var first4 = [LINES.shoshanat, LINES.birotam, LINES.teshuatam, LINES.vetikvatam];
+    for (var i = 0; i < first4.length; i++) {
+      repeat(c, first4[i], rareDup(3));
+    }
+
+    /* להודיע: letter mangling common, word repeats moderate, line repeats rare */
+    var lehLines = rareDup(3);
+    for (var li = 0; li < lehLines; li++) addLine(c, makeLehodiaLine());
+
+    /* line 6 */
+    repeat(c, LINES.velo, rareDup(2));
+
+    /* ארור/ברוך lines: usually once, re-rolling the variant each time */
+    var repsA = rareDup(3);
+    for (var j = 0; j < repsA; j++) {
+      var vj = variants[Math.floor(Math.random() * 3)]();
+      addLine(c, vj[0], 'swap-ab');
+    }
+    var repsB = rareDup(3);
+    for (var k = 0; k < repsB; k++) {
+      var vk = variants[Math.floor(Math.random() * 3)]();
+      addLine(c, vk[1], 'swap-ab');
+    }
+
+    /* ארורה זרש / ברוכה אסתר */
+    repeat(c, LINES.arura, rareDup(2));
+    repeat(c, LINES.berucha, rareDup(2));
+
+    /* parenthetical lines: no parens, randomly include or exclude */
+    if (Math.random() > 0.35) {
+      addLine(c, LINES.parensA);
+      addLine(c, LINES.parensB);
+    }
+
+    /* חרבונה: letter mangling common, word repeats moderate, line repeats rare */
+    var chLines = rareDup(3);
+    for (var ci = 0; ci < chLines; ci++) addLine(c, makeCharvonaLine());
+  }
+
+  /* ---- init ---- */
   var isChromiumDesktop = !!window.chrome
     && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
     && !/Mobile/i.test(navigator.userAgent);
@@ -105,9 +282,34 @@
     document.getElementById('native-viewer').src = 'shoshanatShikorV1.pdf';
   } else {
     document.getElementById('text-viewer').style.display = 'block';
-    document.getElementById('line-a').textContent = picked[0];
-    document.getElementById('line-b').textContent = picked[1];
+    renderPoem(false);
   }
+
+  /* ---- live swap: re-roll ארור/ברוך lines every few seconds ---- */
+  var swapTimer = null;
+  function startSwap() {
+    stopSwap();
+    swapTimer = setInterval(function() {
+      var els = document.querySelectorAll('.swap-ab');
+      for (var i = 0; i < els.length; i++) {
+        var v = variants[Math.floor(Math.random() * 3)]();
+        els[i].textContent = v[Math.floor(Math.random() * 2)];
+      }
+    }, 1500 + Math.floor(Math.random() * 2000));
+  }
+  function stopSwap() {
+    if (swapTimer) { clearInterval(swapTimer); swapTimer = null; }
+  }
+
+  /* ---- button: once activated, each click reshuffles ---- */
+  var drunkMode = false;
+  var btn = document.getElementById('ad-dla-yada');
+  btn.addEventListener('click', function() {
+    drunkMode = true;
+    btn.classList.add('active');
+    renderPoem(true);
+    startSwap();
+  });
 })();
 </script>
 
