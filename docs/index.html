@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שושנת יעקב</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  /* Full-screen PDF embed for Chromium */
+  body.chromium { overflow: hidden; }
+  body.chromium .fallback { display: none; }
+  body.chromium iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Fallback page for non-Chromium */
+  body:not(.chromium) iframe { display: none; }
+  body:not(.chromium) .fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: "David", "Times New Roman", serif;
+    padding: 2em;
+    text-align: center;
+    background: #faf8f0;
+    color: #2a2a2a;
+  }
+  .fallback h1 { font-size: 2em; margin-bottom: 0.5em; }
+  .fallback p { font-size: 1.2em; line-height: 1.6; max-width: 500px; margin-bottom: 1em; }
+  .fallback a {
+    display: inline-block;
+    padding: 0.7em 1.5em;
+    background: #3b5998;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+  }
+  .fallback a:hover { background: #2d4373; }
+  .fallback .note {
+    font-size: 0.9em;
+    color: #777;
+    margin-top: 1.5em;
+    direction: ltr;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<iframe src="shoshanatShikorV1.pdf"></iframe>
+
+<div class="fallback">
+  <h1>שושנת יעקב</h1>
+  <p>
+    הקובץ מכיל תכונה אינטראקטיבית שפועלת
+    <br>בדפדפן מבוסס Chromium בלבד
+    <br>(Google Chrome / Microsoft Edge)
+  </p>
+  <a href="shoshanatShikorV1.pdf" download>הורד את הקובץ</a>
+  <p class="note">
+    Open this link in Google Chrome or Microsoft Edge for the full experience.
+    <br>The PDF contains interactive JavaScript that only runs in Chromium-based browsers.
+  </p>
+</div>
+
+<script>
+  // Detect Chromium-based browsers (Chrome, Edge, Brave, Opera, etc.)
+  var isChromium = !!window.chrome;
+  if (isChromium) {
+    document.body.classList.add('chromium');
+  }
+</script>
+
+</body>
+</html>
