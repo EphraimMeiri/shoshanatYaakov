@@ -8,75 +8,107 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
 
-  /* Full-screen PDF embed for Chromium */
-  body.chromium { overflow: hidden; }
-  body.chromium .fallback { display: none; }
-  body.chromium iframe {
-    display: block;
+  /* Chromium desktop: native PDF iframe */
+  #native-viewer {
+    display: none;
     width: 100%;
     height: 100%;
     border: none;
   }
 
-  /* Fallback page for non-Chromium */
-  body:not(.chromium) iframe { display: none; }
-  body:not(.chromium) .fallback {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  /* Text fallback */
+  #text-viewer {
+    display: none;
     min-height: 100vh;
-    font-family: "David", "Times New Roman", serif;
-    padding: 2em;
-    text-align: center;
     background: #faf8f0;
-    color: #2a2a2a;
+    padding: 3em 1.5em;
   }
-  .fallback h1 { font-size: 2em; margin-bottom: 0.5em; }
-  .fallback p { font-size: 1.2em; line-height: 1.6; max-width: 500px; margin-bottom: 1em; }
-  .fallback a {
-    display: inline-block;
-    padding: 0.7em 1.5em;
-    background: #3b5998;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 1.1em;
+  #text-viewer .poem {
+    max-width: 600px;
+    margin: 0 auto;
+    font-family: "David", "Frank Ruehl", "Times New Roman", "Noto Serif Hebrew", serif;
+    font-size: 1.4em;
+    line-height: 2;
+    text-align: right;
+    color: #1a1a1a;
   }
-  .fallback a:hover { background: #2d4373; }
-  .fallback .note {
-    font-size: 0.9em;
-    color: #777;
-    margin-top: 1.5em;
-    direction: ltr;
-    text-align: center;
+  #text-viewer .poem .line {
+    display: block;
+  }
+  #text-viewer .poem .parens {
+    font-size: 0.95em;
+  }
+  @media (max-width: 480px) {
+    #text-viewer { padding: 2em 1em; }
+    #text-viewer .poem { font-size: 1.15em; }
+  }
+  @media print {
+    #text-viewer { padding: 2cm; }
+    #text-viewer .poem { font-size: 14pt; line-height: 2.2; }
   }
 </style>
 </head>
 <body>
 
-<iframe src="shoshanatShikorV1.pdf"></iframe>
+<iframe id="native-viewer"></iframe>
 
-<div class="fallback">
-  <h1>שושנת יעקב</h1>
-  <p>
-    הקובץ מכיל תכונה אינטראקטיבית שפועלת
-    <br>בדפדפן מבוסס Chromium בלבד
-    <br>(Google Chrome / Microsoft Edge)
-  </p>
-  <a href="shoshanatShikorV1.pdf" download>הורד את הקובץ</a>
-  <p class="note">
-    Open this link in Google Chrome or Microsoft Edge for the full experience.
-    <br>The PDF contains interactive JavaScript that only runs in Chromium-based browsers.
-  </p>
+<div id="text-viewer">
+  <div class="poem">
+    <span class="line">שׁוֹשַׁנַת יַעֲקֹב צָהֲלָה וְשָׂמֵחָה:</span>
+    <span class="line">בִּרְאוֹתָם יַחַד תְּכֵלֶת מָרְדְּכָי:</span>
+    <span class="line">תְּשׁוּעָתָם הָיִיתָ לָנֶצַח:</span>
+    <span class="line">וְתִקְוָתָם בְּכָל דּוֹר וָדוֹר:</span>
+    <span class="line">לְהוֹדִיע שֶׁכָּל קֹוֶיךָ לֹא יֵבֹשׁוּ:</span>
+    <span class="line">וְלֹא יִכָּלְמוּ לָנֶצַח כָּל הַחוֹסִים בָּךְ:</span>
+    <span class="line" id="line-a"></span>
+    <span class="line" id="line-b"></span>
+    <span class="line">אֲרוּרָה זֶרֶשׁ אֵשֶׁת מַפְחִידִי:</span>
+    <span class="line">בְּרוּכָה אֶסְתֵּר בַּעֲדִי:</span>
+    <span class="line parens">(אֲרוּרִים כָּל הָרְשָׁעִים:</span>
+    <span class="line parens">בְּרוּכִים כָּל הָצָדִיקִים:)</span>
+    <span class="line">וְגַם חַרְבוֹנָה זָכוּר לַטּוֹב:</span>
+  </div>
+  <div style="text-align:center; margin-top:2em;">
+    <a href="shoshanatShikorV1.pdf" download
+       style="display:inline-block; padding:0.6em 1.2em; background:#3b5998;
+              color:#fff; text-decoration:none; border-radius:6px; font-size:0.9em;
+              font-family:sans-serif; direction:ltr;">
+      Download PDF (view in Chrome on computer)
+    </a>
+  </div>
 </div>
 
 <script>
-  // Detect Chromium-based browsers (Chrome, Edge, Brave, Opera, etc.)
-  var isChromium = !!window.chrome;
-  if (isChromium) {
-    document.body.classList.add('chromium');
+(function() {
+  var variants = [
+    // [line_a, line_b]
+    ["\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8 \u05D4\u05B8\u05DE\u05B8\u05DF \u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:",
+     "\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0 \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9 \u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:"],
+    // swap adjectives
+    ["\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0 \u05D4\u05B8\u05DE\u05B8\u05DF \u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:",
+     "\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8 \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9 \u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:"],
+    // swap names
+    ["\u05D0\u05B8\u05E8\u05D5\u05BC\u05E8 \u05DE\u05B8\u05E8\u05B0\u05D3\u05BC\u05B0\u05DB\u05B7\u05D9 \u05D0\u05B2\u05E9\u05C1\u05B6\u05E8 \u05D1\u05BC\u05B4\u05E7\u05BC\u05B5\u05E9\u05C1 \u05DC\u05B0\u05D0\u05B7\u05D1\u05BC\u05B0\u05D3\u05B4\u05D9:",
+     "\u05D1\u05BC\u05B8\u05E8\u05D5\u05BC\u05DA\u05B0 \u05D4\u05B8\u05DE\u05B8\u05DF \u05D4\u05B7\u05D9\u05BC\u05B0\u05D4\u05D5\u05BC\u05D3\u05B4\u05D9:"]
+  ];
+
+  var roll = Math.floor(Math.random() * 3);
+  var picked = variants[roll];
+
+  // Detect Chromium desktop (not mobile)
+  var isChromiumDesktop = !!window.chrome
+    && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    && !/Mobile/i.test(navigator.userAgent);
+
+  if (isChromiumDesktop) {
+    document.getElementById('native-viewer').style.display = 'block';
+    document.getElementById('native-viewer').src = 'shoshanatShikorV1.pdf';
+  } else {
+    document.getElementById('text-viewer').style.display = 'block';
+    document.getElementById('line-a').textContent = picked[0];
+    document.getElementById('line-b').textContent = picked[1];
   }
+})();
 </script>
 
 </body>
